@@ -8,6 +8,7 @@ client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 GOAL = "Finn 10 små bedrifter i Evje uten god nettside"
 
+# 🧠 strukturert memory (ikke tekst)
 memory = []
 
 for i in range(3):
@@ -18,18 +19,25 @@ for i in range(3):
             {
                 "role": "user",
                 "content": f"""
-Du er en research-agent.
+Du er en research-agent som finner lokale bedrifter.
 
-Mål: {GOAL}
+MÅL:
+{GOAL}
 
-Tidligere funn:
+TIDLIGERE FUNN:
 {memory}
 
-Finn nye resultater som ikke er listet før.
+VIKTIG:
+- Ikke gjenta bedrifter som allerede finnes i memory
+- Finn nye unike bedrifter
+- Fokuser på små lokale bedrifter i Evje
+
 Svar strukturert:
-- Bedriftsnavn
-- Bransje
-- Hvorfor dårlig nettside
+
+Navn: ...
+Bransje: ...
+Nettside: dårlig / ingen / ukjent
+Begrunnelse: ...
 """
             }
         ]
@@ -38,4 +46,5 @@ Svar strukturert:
     output = response.content[0].text
     print(output)
 
-    memory.append(output)
+    # 🧠 lagre kun navn (bedre memory)
+    memory.append(output.split("\n")[0])
