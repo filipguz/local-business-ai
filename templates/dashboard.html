@@ -1,72 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Lead Engine</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="bg-black text-white">
 
-<div class="topbar">
-  <div class="title">⚡ AI LEAD ENGINE // EVJE NODE</div>
-  <p style="color:#94a3b8; font-size:12px;">
-    autonomous business discovery system
-  </p>
+<div class="flex">
+
+  <!-- SIDEBAR -->
+  <div class="w-64 h-screen bg-zinc-950 p-6 border-r border-gray-800">
+
+    <h1 class="text-cyan-400 font-bold text-lg mb-6">AI Lead Engine</h1>
+
+    <a href="/app" class="block mb-2 text-sm hover:text-cyan-400">Dashboard</a>
+    <a href="/pricing" class="block mb-2 text-sm hover:text-cyan-400">Pricing</a>
+    <a href="/logout" class="block mb-2 text-sm text-red-400">Logout</a>
+
+    <div class="mt-10 p-3 bg-zinc-900 rounded">
+      <p class="text-xs text-gray-400">Status</p>
+      <p id="plan" class="text-cyan-400 font-bold">Loading...</p>
+    </div>
+
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-1 p-10">
+
+    <h2 class="text-2xl font-bold mb-6">Leads</h2>
+
+    <button onclick="loadLeads()"
+            class="bg-cyan-500 text-black px-4 py-2 rounded-lg mb-6">
+      Generate Leads
+    </button>
+
+    <pre id="output" class="text-sm bg-zinc-900 p-4 rounded-xl overflow-auto h-[70vh]"></pre>
+
+  </div>
+
 </div>
-
-<div style="padding: 20px;">
-  <button class="btn" onclick="loadLeads()">
-    GENERATE LEADS
-  </button>
-</div>
-
-<!-- TERMINAL -->
-<div class="terminal" id="terminal">
-  > system ready...
-</div>
-
-<!-- GRID -->
-<div id="grid" class="grid"></div>
 
 <script>
-  async function loadLeads() {
-    const terminal = document.getElementById("terminal");
-    const grid = document.getElementById("grid");
-
-    terminal.innerHTML += "\n> scanning Evje business network...";
-    terminal.innerHTML += "\n> connecting to Maps API...";
-    terminal.innerHTML += "\n> running AI scoring engine...";
-
-    const res = await fetch("/api/leads");
-    const data = await res.json();
-
-    terminal.innerHTML += "\n> leads found: " + data.length;
-    terminal.innerHTML += "\n> rendering dashboard...\n";
-
-    grid.innerHTML = "";
-
-    data.forEach((lead, i) => {
-      setTimeout(() => {
-        terminal.innerHTML += `> processing ${lead.name}\n`;
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-                <div class="card-title">${lead.name}</div>
-                <div>${lead.industry}</div>
-                <div class="score">Score: ${lead.score}/5</div>
-                <div class="reason">${lead.reason}</div>
-            `;
-
-        grid.appendChild(card);
-
-        terminal.scrollTop = terminal.scrollHeight;
-
-      }, i * 150);
-    });
-
-    terminal.innerHTML += "\n> COMPLETE <span class='cursor'></span>";
+  function loadLeads() {
+    fetch("/api/leads")
+            .then(r => r.json())
+            .then(data => {
+              document.getElementById("plan").innerText = data.plan;
+              document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+            });
   }
 </script>
 

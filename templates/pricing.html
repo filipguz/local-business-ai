@@ -9,29 +9,41 @@
 
 <div class="text-center py-20">
 
-    <h1 class="text-4xl font-bold text-cyan-400 mb-10">
-        Choose Your Plan
-    </h1>
+    <h1 class="text-4xl font-bold mb-4">Simple Pricing</h1>
+    <p class="text-gray-400 mb-10">Start free, upgrade when you're ready</p>
 
-    <div class="flex justify-center gap-10">
+    <div class="flex justify-center gap-6">
 
         <!-- FREE -->
-        <div class="border border-cyan-500/20 p-8 rounded-xl w-64">
+        <div class="border border-gray-700 p-6 rounded-xl w-72">
             <h2 class="text-xl font-bold mb-2">Free</h2>
             <p class="text-gray-400 mb-4">Basic lead access</p>
-            <a href="/register"
-               class="block bg-gray-700 text-white py-2 rounded-lg">
+
+            <ul class="text-sm text-gray-400 space-y-2 mb-6">
+                <li>✔ Limited Google Maps leads</li>
+                <li>✔ Basic AI analysis</li>
+                <li>✖ No export</li>
+            </ul>
+
+            <a href="/app" class="block border border-cyan-500 text-center py-2 rounded-lg">
                 Start Free
             </a>
         </div>
 
         <!-- PRO -->
-        <div class="border border-cyan-500 p-8 rounded-xl w-64">
-            <h2 class="text-xl font-bold text-cyan-400 mb-2">Pro</h2>
-            <p class="text-gray-400 mb-4">Unlimited AI leads</p>
-            <a href="/checkout"
-               class="block bg-cyan-500 text-black py-2 rounded-lg font-bold">
-                Upgrade
+        <div class="border border-cyan-500 p-6 rounded-xl w-72 bg-zinc-900">
+            <h2 class="text-xl font-bold mb-2 text-cyan-400">Pro</h2>
+            <p class="text-gray-400 mb-4">Full SaaS access</p>
+
+            <ul class="text-sm text-gray-300 space-y-2 mb-6">
+                <li>✔ Unlimited leads</li>
+                <li>✔ AI scoring system</li>
+                <li>✔ High-value filtering</li>
+                <li>✔ Priority data</li>
+            </ul>
+
+            <a href="/checkout" class="block bg-cyan-500 text-black text-center py-2 rounded-lg font-bold">
+                Upgrade with Stripe
             </a>
         </div>
 

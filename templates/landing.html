@@ -1,140 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>AI Lead Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-black text-white">
 
-<!-- NAVBAR -->
-<div class="flex justify-between items-center px-8 py-5 border-b border-cyan-500/20 bg-black/70 backdrop-blur">
-    <div class="text-cyan-400 font-bold tracking-widest">
-        AI LEAD ENGINE
-    </div>
-
-    <div class="space-x-6 text-sm text-gray-300">
-        <a href="/" class="hover:text-cyan-400">Home</a>
+<!-- NAV -->
+<div class="flex justify-between items-center px-10 py-6 border-b border-gray-800">
+    <div class="text-cyan-400 font-bold text-lg">AI Lead Engine</div>
+    <div class="space-x-4 text-sm">
+        <a href="/pricing" class="hover:text-cyan-400">Pricing</a>
         <a href="/login" class="hover:text-cyan-400">Login</a>
+        <a href="/app" class="bg-cyan-500 text-black px-4 py-2 rounded-lg">Open App</a>
     </div>
 </div>
 
 <!-- HERO -->
-<div class="h-[90vh] flex flex-col justify-center items-center text-center px-6">
+<div class="h-[80vh] flex flex-col justify-center items-center text-center px-6">
 
-    <div class="text-cyan-400 text-xs mb-4 tracking-[0.3em] uppercase">
-        AI POWERED LOCAL BUSINESS INTELLIGENCE
+    <div class="text-cyan-400 text-sm mb-4 tracking-widest">
+        AI POWERED LEAD GENERATION
     </div>
 
-    <h1 class="text-6xl font-bold mb-6 leading-tight">
-        Find High-Value Leads<br>
-        in Seconds
+    <h1 class="text-5xl font-bold mb-6 max-w-3xl">
+        Find Businesses That Need Websites — Instantly
     </h1>
 
-    <p class="text-gray-400 max-w-2xl mb-10">
-        We scan Google Maps, analyze local businesses, and detect companies
-        that need new websites or digital upgrades — automatically.
+    <p class="text-gray-400 max-w-xl mb-8">
+        We scan Google Maps, analyze local businesses, and identify high-value leads
+        that are ready to buy websites or digital services.
     </p>
 
-    <div class="flex flex-col sm:flex-row gap-4">
-
-        <a href="/register"
-           class="bg-cyan-500 text-black px-8 py-3 rounded-xl font-bold hover:scale-105 transition">
-            Get Started Free
+    <div class="space-x-4">
+        <a href="/app" class="bg-cyan-500 text-black px-6 py-3 rounded-xl font-bold">
+            Launch App
         </a>
 
-        <a href="/login"
-           class="border border-cyan-500 px-8 py-3 rounded-xl text-cyan-400 hover:bg-cyan-500/10 transition">
-            I already have an account
+        <a href="/pricing" class="border border-cyan-500 px-6 py-3 rounded-xl">
+            View Pricing
         </a>
-
     </div>
-
-    <p class="text-gray-600 text-xs mt-6">
-        No credit card required • Setup in 30 seconds
-    </p>
-
 </div>
 
-<!-- VALUE SECTION -->
-<div class="grid md:grid-cols-3 gap-6 px-10 py-24 bg-zinc-950">
+<!-- FEATURES -->
+<div class="grid md:grid-cols-3 gap-6 px-10 py-20 bg-zinc-950">
 
-    <div class="p-6 rounded-xl border border-cyan-500/20 bg-black">
-        <h2 class="text-cyan-400 font-bold mb-2">Automated Discovery</h2>
-        <p class="text-gray-400 text-sm">
-            Finds local businesses with weak or missing online presence.
-        </p>
+    <div class="p-6 border border-cyan-500/20 rounded-xl">
+        <h3 class="text-cyan-400 font-bold mb-2">Google Maps AI</h3>
+        <p class="text-gray-400 text-sm">Extract real local businesses automatically.</p>
     </div>
 
-    <div class="p-6 rounded-xl border border-cyan-500/20 bg-black">
-        <h2 class="text-cyan-400 font-bold mb-2">AI Scoring Engine</h2>
-        <p class="text-gray-400 text-sm">
-            Ranks leads by website quality and conversion potential.
-        </p>
+    <div class="p-6 border border-cyan-500/20 rounded-xl">
+        <h3 class="text-cyan-400 font-bold mb-2">AI Scoring</h3>
+        <p class="text-gray-400 text-sm">Rank leads by website potential & value.</p>
     </div>
 
-    <div class="p-6 rounded-xl border border-cyan-500/20 bg-black">
-        <h2 class="text-cyan-400 font-bold mb-2">Instant Pipeline</h2>
-        <p class="text-gray-400 text-sm">
-            Ready-to-use leads for outreach, CRM, or freelancing sales.
-        </p>
+    <div class="p-6 border border-cyan-500/20 rounded-xl">
+        <h3 class="text-cyan-400 font-bold mb-2">Instant SaaS Output</h3>
+        <p class="text-gray-400 text-sm">Get structured leads ready to sell.</p>
     </div>
 
-</div>
-
-<!-- HOW IT WORKS -->
-<div class="px-10 py-24 bg-black">
-
-    <h2 class="text-3xl font-bold text-center mb-12 text-cyan-400">
-        How It Works
-    </h2>
-
-    <div class="grid md:grid-cols-3 gap-8 text-center">
-
-        <div>
-            <div class="text-cyan-400 text-4xl mb-2">1</div>
-            <h3 class="font-bold mb-2">Scan</h3>
-            <p class="text-gray-400 text-sm">Google Maps data is collected automatically.</p>
-        </div>
-
-        <div>
-            <div class="text-cyan-400 text-4xl mb-2">2</div>
-            <h3 class="font-bold mb-2">Analyze</h3>
-            <p class="text-gray-400 text-sm">AI evaluates digital presence and quality.</p>
-        </div>
-
-        <div>
-            <div class="text-cyan-400 text-4xl mb-2">3</div>
-            <h3 class="font-bold mb-2">Deliver</h3>
-            <p class="text-gray-400 text-sm">Structured leads delivered instantly.</p>
-        </div>
-
-    </div>
-
-</div>
-
-<!-- CTA BOTTOM -->
-<div class="text-center py-24 bg-zinc-950">
-
-    <h2 class="text-4xl font-bold mb-4">
-        Start Generating Leads Today
-    </h2>
-
-    <p class="text-gray-400 mb-8">
-        Turn local data into revenue opportunities in minutes.
-    </p>
-
-    <a href="/register"
-       class="bg-cyan-500 text-black px-10 py-4 rounded-xl font-bold hover:scale-105 transition">
-        Create Free Account
-    </a>
-
-</div>
-
-<!-- FOOTER -->
-<div class="text-center py-10 text-gray-600 text-sm border-t border-cyan-500/10">
-    Built with AI • Local Lead Engine • SaaS MVP
 </div>
 
 </body>
