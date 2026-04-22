@@ -10,7 +10,7 @@
 <div class="flex">
 
   <!-- SIDEBAR -->
-  <div class="w-64 h-screen bg-zinc-950 p-6 border-r border-gray-800">
+  <div class="w-64 h-screen bg-zinc-950 p-6 border-r border-zinc-800">
 
     <h1 class="text-cyan-400 font-bold text-lg mb-6">AI Lead Engine</h1>
 
@@ -18,9 +18,9 @@
     <a href="/pricing" class="block mb-2 text-sm hover:text-cyan-400">Pricing</a>
     <a href="/logout" class="block mb-2 text-sm text-red-400">Logout</a>
 
-    <div class="mt-10 p-3 bg-zinc-900 rounded">
+    <div class="mt-10 p-3 bg-zinc-900 rounded-xl border border-zinc-800">
       <p class="text-xs text-gray-400">Status</p>
-      <p id="plan" class="text-cyan-400 font-bold">Loading...</p>
+      <p id="plan" class="text-cyan-400 font-bold">Idle</p>
     </div>
 
   </div>
@@ -28,27 +28,110 @@
   <!-- MAIN -->
   <div class="flex-1 p-10">
 
-    <h2 class="text-2xl font-bold mb-6">Leads</h2>
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold">Leads</h2>
 
-    <button onclick="loadLeads()"
-            class="bg-cyan-500 text-black px-4 py-2 rounded-lg mb-6">
-      Generate Leads
-    </button>
+      <button onclick="loadLeads()"
+              class="bg-cyan-500 hover:bg-cyan-400 transition text-black px-4 py-2 rounded-lg font-semibold">
+        Generate Leads
+      </button>
+    </div>
 
-    <pre id="output" class="text-sm bg-zinc-900 p-4 rounded-xl overflow-auto h-[70vh]"></pre>
+    <!-- GRID -->
+    <div id="output" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
 
   </div>
 
 </div>
 
 <script>
-  function loadLeads() {
-    fetch("/api/leads")
-            .then(r => r.json())
-            .then(data => {
-              document.getElementById("plan").innerText = data.plan;
-              document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-            });
+  const state = {
+    loading: false,
+    data: null,
+    error: null
+  };
+
+  function scoreStyle(score) {
+    if (score >= 8) return "bg-green-500/20 text-green-400 border-green-500/30";
+    if (score >= 6) return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+    return "bg-red-500/20 text-red-400 border-red-500/30";
+  }
+
+  function render() {
+    const planEl = document.getElementById("plan");
+    const outputEl = document.getElementById("output");
+
+    if (state.loading) {
+      planEl.innerText = "Loading...";
+      outputEl.innerHTML = `
+      <div class="text-gray-400">Generating high-quality leads...</div>
+    `;
+      return;
+    }
+
+    if (state.error) {
+      planEl.innerText = "Error";
+      outputEl.innerHTML = `
+      <div class="text-red-400">${state.error}</div>
+    `;
+      return;
+    }
+
+    if (!state.data) return;
+
+    planEl.innerText = state.data.plan || "unknown";
+
+    outputEl.innerHTML = state.data.data.map(lead => `
+    <div class="bg-zinc-900/60 backdrop-blur border border-zinc-800 rounded-2xl p-5 hover:scale-[1.02] transition transform">
+
+      <!-- TOP -->
+      <div class="flex items-start justify-between mb-3">
+
+        <div>
+          <h3 class="text-lg font-semibold">${lead.name}</h3>
+          <p class="text-xs text-cyan-400 mt-1">${lead.industry}</p>
+        </div>
+
+        <div class="px-3 py-1 rounded-full text-xs border ${scoreStyle(lead.score)}">
+          Score ${lead.score}
+        </div>
+
+      </div>
+
+      <!-- REASON -->
+      <p class="text-sm text-gray-300 leading-relaxed mb-4">
+        ${lead.reason}
+      </p>
+
+      <!-- FOOTER -->
+      <div class="flex justify-between text-xs text-gray-500">
+        <span>Website: ${lead.website_quality}</span>
+        <span class="text-gray-600">Lead quality analysis</span>
+      </div>
+
+    </div>
+  `).join("");
+  }
+
+  async function loadLeads() {
+    state.loading = true;
+    state.error = null;
+    render();
+
+    try {
+      const res = await fetch("/api/leads");
+      if (!res.ok) throw new Error("API error " + res.status);
+
+      state.data = await res.json();
+      state.loading = false;
+
+      render();
+
+    } catch (err) {
+      state.error = err.message;
+      state.loading = false;
+      render();
+    }
   }
 </script>
 
