@@ -1,24 +1,29 @@
+import logging
 import os
-from dotenv import load_dotenv
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from anthropic import Anthropic
+from dotenv import load_dotenv
+
+from config import AI_MODEL
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
 
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 GOAL = "Finn 10 små bedrifter i Evje uten god nettside"
-
-# 🧠 strukturert memory (ikke tekst)
-memory = []
+memory: list[str] = []
 
 for i in range(3):
     response = client.messages.create(
-        model="claude-sonnet-4-6",
+        model=AI_MODEL,
         max_tokens=800,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""
+        messages=[{
+            "role": "user",
+            "content": f"""
 Du er en research-agent som finner lokale bedrifter.
 
 MÅL:
@@ -39,12 +44,9 @@ Bransje: ...
 Nettside: dårlig / ingen / ukjent
 Begrunnelse: ...
 """
-            }
-        ]
+        }]
     )
 
     output = response.content[0].text
     print(output)
-
-    # 🧠 lagre kun navn (bedre memory)
     memory.append(output.split("\n")[0])

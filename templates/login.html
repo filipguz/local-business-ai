@@ -13,15 +13,22 @@
         AI LEAD ENGINE
     </h1>
 
+    {% if error %}
+    <p class="text-red-400 text-sm mb-4 text-center">{{ error }}</p>
+    {% endif %}
+
     <form method="post" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <input name="username"
                placeholder="Username"
+               autocomplete="username"
                class="w-full p-3 bg-black border border-cyan-500/30 rounded-lg text-white">
 
         <input name="password"
                type="password"
                placeholder="Password"
+               autocomplete="current-password"
                class="w-full p-3 bg-black border border-cyan-500/30 rounded-lg text-white">
 
         <button class="w-full bg-cyan-500 text-black p-3 rounded-lg font-bold hover:scale-105 transition">

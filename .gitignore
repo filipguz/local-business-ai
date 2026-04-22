@@ -1,5 +1,7 @@
 .env
-.venv
+.venv/
 __pycache__/
 *.pyc
-.venv/
+flask_session/
+users.db
+users.json.bak
