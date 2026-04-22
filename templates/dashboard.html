@@ -1,26 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lead SaaS Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>AI Lead Engine</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 
-<body class="bg-gray-100">
+<body>
 
-<div class="p-6">
-
-  <h1 class="text-2xl font-bold mb-4">🚀 AI Lead Dashboard</h1>
-
-  <button onclick="loadLeads()"
-          class="bg-blue-600 text-white px-4 py-2 rounded-xl mb-6">
-    Generate Leads
-  </button>
-
-  <div id="grid" class="grid grid-cols-3 gap-4"></div>
-
+<div class="topbar">
+  <div class="title">⚡ AI LEAD ENGINE // EVJE NODE</div>
+  <p style="color:#94a3b8; font-size:12px;">
+    autonomous business discovery system
+  </p>
 </div>
 
-<script src="/static/app.js"></script>
+<div style="padding: 20px;">
+  <button class="btn" onclick="loadLeads()">
+    GENERATE LEADS
+  </button>
+</div>
+
+<!-- TERMINAL -->
+<div class="terminal" id="terminal">
+  > system ready...
+</div>
+
+<!-- GRID -->
+<div id="grid" class="grid"></div>
+
+<script>
+  async function loadLeads() {
+    const terminal = document.getElementById("terminal");
+    const grid = document.getElementById("grid");
+
+    terminal.innerHTML += "\n> scanning Evje business network...";
+    terminal.innerHTML += "\n> connecting to Maps API...";
+    terminal.innerHTML += "\n> running AI scoring engine...";
+
+    const res = await fetch("/api/leads");
+    const data = await res.json();
+
+    terminal.innerHTML += "\n> leads found: " + data.length;
+    terminal.innerHTML += "\n> rendering dashboard...\n";
+
+    grid.innerHTML = "";
+
+    data.forEach((lead, i) => {
+      setTimeout(() => {
+        terminal.innerHTML += `> processing ${lead.name}\n`;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+                <div class="card-title">${lead.name}</div>
+                <div>${lead.industry}</div>
+                <div class="score">Score: ${lead.score}/5</div>
+                <div class="reason">${lead.reason}</div>
+            `;
+
+        grid.appendChild(card);
+
+        terminal.scrollTop = terminal.scrollHeight;
+
+      }, i * 150);
+    });
+
+    terminal.innerHTML += "\n> COMPLETE <span class='cursor'></span>";
+  }
+</script>
 
 </body>
 </html>
