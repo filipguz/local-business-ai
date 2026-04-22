@@ -1,8 +1,12 @@
 from flask import Flask, render_template, jsonify
 from maps import search_places
 from ai import analyze_leads
+from auth import auth
 
 app = Flask(__name__)
+
+# 🔐 register blueprint AFTER app exists
+app.register_blueprint(auth)
 
 
 # 🌐 LANDING PAGE

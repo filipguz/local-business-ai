@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - AI Lead Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white flex items-center justify-center h-screen">
+
+<div class="w-full max-w-md p-8 border border-cyan-500/20 rounded-xl bg-zinc-950">
+
+    <h1 class="text-2xl font-bold text-cyan-400 mb-6 text-center">
+        Create Account
+    </h1>
+
+    <form method="post" class="space-y-4">
+
+        <input name="username"
+               placeholder="Username"
+               class="w-full p-3 bg-black border border-cyan-500/30 rounded-lg text-white">
+
+        <input name="password"
+               type="password"
+               placeholder="Password"
+               class="w-full p-3 bg-black border border-cyan-500/30 rounded-lg text-white">
+
+        <button class="w-full bg-cyan-500 text-black p-3 rounded-lg font-bold hover:scale-105 transition">
+            Register
+        </button>
+
+    </form>
+
+    <p class="text-sm text-gray-500 mt-4 text-center">
+        Already have account?
+        <a href="/login" class="text-cyan-400">Login</a>
+    </p>
+
+</div>
+
+</body>
+</html>
