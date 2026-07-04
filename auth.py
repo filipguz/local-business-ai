@@ -2,18 +2,23 @@ from flask import Blueprint, redirect, render_template, request, session
 from flask_bcrypt import Bcrypt
 
 from db import create_user, get_user, user_exists
+from extensions import limiter
 
 auth = Blueprint("auth", __name__)
 bcrypt = Bcrypt()
 
+_MIN_PASSWORD_LEN = 8
+
 
 @auth.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         user = get_user(username)
         if user and bcrypt.check_password_hash(user["password"], password):
+            session.permanent = True
             session["user"] = username
             return redirect("/app")
         return render_template("login.html", error="Ugyldig brukernavn eller passord")
@@ -21,12 +26,18 @@ def login():
 
 
 @auth.route("/register", methods=["GET", "POST"])
+@limiter.limit("3 per minute")
 def register():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         if not username or not password:
             return render_template("register.html", error="Brukernavn og passord er påkrevd")
+        if len(password) < _MIN_PASSWORD_LEN:
+            return render_template(
+                "register.html",
+                error=f"Passordet må være minst {_MIN_PASSWORD_LEN} tegn",
+            )
         if user_exists(username):
             return render_template("register.html", error="Brukernavnet er allerede i bruk")
         hashed = bcrypt.generate_password_hash(password).decode("utf-8")

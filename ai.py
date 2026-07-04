@@ -14,10 +14,17 @@ logger = logging.getLogger(__name__)
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
+_ALLOWED_QUALITY = {"god", "dårlig", "ingen", "ukjent"}
+
+
 def _clean_json(text: str) -> str:
     text = re.sub(r"```json", "", text)
     text = re.sub(r"```", "", text)
     return text.strip()
+
+
+def _sanitize(value: str, max_len: int = 200) -> str:
+    return str(value).strip()[:max_len]
 
 
 def analyze_leads(places: list) -> list:
@@ -62,10 +69,12 @@ DATA:
 
 
 def generate_email(lead: dict) -> str:
-    name = lead.get("name", "")
-    industry = lead.get("industry", "")
+    name = _sanitize(lead.get("name", ""), 100)
+    industry = _sanitize(lead.get("industry", ""), 100)
     website_quality = lead.get("website_quality", "ukjent")
-    reason = lead.get("reason", "")
+    if website_quality not in _ALLOWED_QUALITY:
+        website_quality = "ukjent"
+    reason = _sanitize(lead.get("reason", ""), 300)
 
     response = client.messages.create(
         model=AI_MODEL,

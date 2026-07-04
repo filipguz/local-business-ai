@@ -1,10 +1,10 @@
 import logging
 import os
+from datetime import timedelta
 
 import stripe
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session
-from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 
@@ -12,6 +12,7 @@ from ai import analyze_leads, generate_email
 from auth import auth
 from config import FREE_PLAN_QUERY, PRO_PLAN_QUERY
 from db import get_user_plan, init_db, set_user_plan
+from extensions import limiter
 from maps import search_places
 from payments import create_checkout_session
 
@@ -26,25 +27,20 @@ secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY is not set. Add it to your .env file.")
 app.secret_key = secret_key
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
+app.config["WTF_CSRF_TIME_LIMIT"] = 3600
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 _stripe_webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
 csrf = CSRFProtect(app)
-app.config["WTF_CSRF_TIME_LIMIT"] = 3600
+limiter.init_app(app)
 
 
 def _rate_limit_key():
     user = session.get("user")
     return f"user:{user}" if user else get_remote_address()
 
-
-limiter = Limiter(
-    key_func=_rate_limit_key,
-    app=app,
-    storage_uri="memory://",
-    default_limits=[],
-)
 
 app.register_blueprint(auth)
 init_db()
@@ -86,7 +82,7 @@ def cancel():
 
 
 @app.route("/api/leads")
-@limiter.limit("10 per minute")
+@limiter.limit("10 per minute", key_func=_rate_limit_key)
 def get_leads():
     user = session.get("user")
     if not user:
@@ -113,7 +109,7 @@ def get_leads():
 
 
 @app.route("/api/email", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute", key_func=_rate_limit_key)
 def get_lead_email():
     user = session.get("user")
     if not user:

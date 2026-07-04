@@ -19,9 +19,13 @@ def search_places(query: str) -> list:
         "language": "no",
     }
 
-    response = requests.get(url, params=params, timeout=10)
-    response.raise_for_status()
-    data = response.json()
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as e:
+        logger.error("Google Maps API error for query '%s': %s", query, e)
+        return []
 
     logger.debug("Google Maps returned %d results for query: %s", len(data.get("results", [])), query)
 
