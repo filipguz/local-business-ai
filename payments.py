@@ -3,7 +3,7 @@ import os
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-def create_checkout_session(user_id):
+def create_checkout_session(username):
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[{
@@ -13,7 +13,6 @@ def create_checkout_session(user_id):
         mode="subscription",
         success_url=os.getenv("DOMAIN") + "/success",
         cancel_url=os.getenv("DOMAIN") + "/cancel",
-        metadata={"user_id": user_id}
+        metadata={"username": username},
     )
-
     return session.url

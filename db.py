@@ -77,9 +77,10 @@ def get_user_plan(username: str) -> str:
     return user["plan"] if user else "free"
 
 
-def set_user_plan(username: str, plan: str) -> None:
+def set_user_plan(username: str, plan: str) -> bool:
     with _connect() as conn:
-        conn.execute(
+        cursor = conn.execute(
             "UPDATE users SET plan = ? WHERE username = ?", (plan, username)
         )
         conn.commit()
+        return cursor.rowcount > 0

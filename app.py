@@ -152,12 +152,15 @@ def stripe_webhook():
 
     if event["type"] == "checkout.session.completed":
         session_obj = event["data"]["object"]
-        user_id = session_obj.get("metadata", {}).get("user_id")
-        if not user_id:
-            logger.warning("Stripe webhook: no user_id in metadata")
-            return "missing user_id", 400
-        set_user_plan(user_id, "pro")
-        logger.info("Upgraded %s to pro", user_id)
+        username = session_obj.get("metadata", {}).get("username")
+        if not username:
+            logger.warning("Stripe webhook: no username in metadata")
+            return "missing username", 400
+        updated = set_user_plan(username, "pro")
+        if not updated:
+            logger.error("Stripe webhook: user '%s' not found in DB — plan not upgraded", username)
+            return "user not found", 404
+        logger.info("Upgraded %s to pro", username)
 
     return "ok", 200
 
