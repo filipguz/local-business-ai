@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Dashboard</title>
+  <title>Dashboard – AI Lead Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -15,11 +15,7 @@
       <h3 id="modalTitle" class="font-bold text-base text-white">Genererer e-post...</h3>
       <button onclick="closeModal()" class="text-zinc-500 hover:text-white text-xl leading-none">✕</button>
     </div>
-
-    <div id="modalLoading" class="py-8 text-center text-zinc-400 text-sm">
-      Skriver e-post med AI...
-    </div>
-
+    <div id="modalLoading" class="py-8 text-center text-zinc-400 text-sm">Skriver e-post med AI...</div>
     <div id="modalBody" class="hidden">
       <textarea id="emailText"
                 class="w-full h-52 bg-zinc-950 border border-zinc-700 rounded-xl p-4 text-sm text-gray-200 resize-none focus:outline-none focus:border-cyan-600"
@@ -35,7 +31,6 @@
         </button>
       </div>
     </div>
-
     <div id="modalError" class="hidden py-4">
       <p id="modalErrorText" class="text-red-400 text-sm text-center"></p>
       <div class="mt-4 text-center">
@@ -45,17 +40,50 @@
   </div>
 </div>
 
+<!-- NOTES MODAL -->
+<div id="notesModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="notesModalTitle" class="font-bold text-base text-white">Notater</h3>
+      <button onclick="closeNotesModal()" class="text-zinc-500 hover:text-white text-xl leading-none">✕</button>
+    </div>
+    <textarea id="notesText"
+              class="w-full h-36 bg-zinc-950 border border-zinc-700 rounded-xl p-4 text-sm text-gray-200 resize-none focus:outline-none focus:border-cyan-600"
+              placeholder="Legg til notater..."></textarea>
+    <div class="flex gap-3 mt-4">
+      <button onclick="saveNotes()"
+              class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold py-2 rounded-lg text-sm transition">
+        Lagre notater
+      </button>
+      <button onclick="closeNotesModal()"
+              class="px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white rounded-lg text-sm transition">
+        Avbryt
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="flex">
 
   <!-- SIDEBAR -->
-  <div class="w-64 h-screen bg-zinc-950 p-6 border-r border-zinc-800 flex-shrink-0 relative">
+  <div class="w-64 h-screen bg-zinc-950 p-6 border-r border-zinc-800 flex-shrink-0 relative flex flex-col">
     <h1 class="text-cyan-400 font-bold text-lg mb-6">AI Lead Engine</h1>
 
-    <a href="/app" class="block mb-2 text-sm hover:text-cyan-400">Dashboard</a>
-    <a href="/pricing" class="block mb-2 text-sm hover:text-cyan-400">Pricing</a>
+    <nav class="space-y-1 mb-6">
+      <button onclick="switchTab('search')" id="tab-search"
+              class="w-full text-left px-3 py-2 rounded-lg text-sm transition tab-btn active-tab">
+        Søk leads
+      </button>
+      <button onclick="switchTab('saved')" id="tab-saved"
+              class="w-full text-left px-3 py-2 rounded-lg text-sm transition tab-btn">
+        Lagrede leads <span id="savedCount" class="ml-1 text-xs text-zinc-500"></span>
+      </button>
+    </nav>
+
+    <a href="/pricing" class="block mb-2 text-sm text-zinc-400 hover:text-cyan-400">Pricing</a>
     <a href="/logout" class="block mb-2 text-sm text-red-400">Logout</a>
 
-    <div class="mt-10 p-3 bg-zinc-900 rounded-xl border border-zinc-800">
+    <div class="mt-6 p-3 bg-zinc-900 rounded-xl border border-zinc-800">
       <p class="text-xs text-gray-400">Plan</p>
       <p id="planBadge" class="text-cyan-400 font-bold capitalize">–</p>
     </div>
@@ -65,7 +93,7 @@
       <p id="resultCount" class="text-white font-bold">–</p>
     </div>
 
-    <div class="absolute bottom-6 left-0 w-64 text-center text-xs text-zinc-700">
+    <div class="mt-auto text-center text-xs text-zinc-700">
       Laget av
       <a href="https://github.com/filipguz" target="_blank" rel="noopener" class="text-zinc-500 hover:text-cyan-400 transition">
         github/filipguz
@@ -76,35 +104,95 @@
   <!-- MAIN -->
   <div class="flex-1 p-10 overflow-y-auto">
 
-    <!-- HEADER -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold mb-1">Lead-søk</h2>
-      <p class="text-sm text-zinc-500">Søk etter lokale bedrifter i hele Norge. AI scorer og analyserer hvert resultat.</p>
+    <!-- SEARCH TAB -->
+    <div id="view-search">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-1">Lead-søk</h2>
+        <p class="text-sm text-zinc-500">Søk etter lokale bedrifter i hele Norge. AI scorer og analyserer hvert resultat.</p>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="flex gap-3 mb-5">
+        <input id="searchInput"
+               type="text"
+               placeholder="f.eks. tannlege Bergen, rørlegger Stavanger, frisør Tromsø..."
+               class="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500 transition text-sm"
+               onkeydown="if(event.key==='Enter') loadLeads()">
+        <button onclick="loadLeads()" id="searchBtn"
+                class="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition text-black px-6 py-3 rounded-xl font-semibold text-sm whitespace-nowrap">
+          Søk leads
+        </button>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="flex gap-3 mb-6 flex-wrap">
+        <select id="filterQuality" onchange="applyFilters()"
+                class="px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-cyan-500">
+          <option value="">Alle nettsider</option>
+          <option value="ingen">Ingen nettside</option>
+          <option value="dårlig">Dårlig nettside</option>
+          <option value="god">God nettside</option>
+          <option value="ukjent">Ukjent</option>
+        </select>
+        <select id="filterScore" onchange="applyFilters()"
+                class="px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-cyan-500">
+          <option value="">Alle scorer</option>
+          <option value="8">Score 8–10</option>
+          <option value="6">Score 6–7</option>
+          <option value="0">Score under 6</option>
+        </select>
+        <select id="sortBy" onchange="applyFilters()"
+                class="px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-cyan-500">
+          <option value="score-desc">Høyest score</option>
+          <option value="score-asc">Lavest score</option>
+          <option value="name-asc">Navn A–Å</option>
+        </select>
+        <button id="resetFilters" onclick="resetFilters()"
+                class="px-3 py-2 border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white rounded-lg text-sm transition hidden">
+          Nullstill filter
+        </button>
+      </div>
+
+      <div id="statusMsg" class="hidden mb-4 text-xs text-zinc-500"></div>
+      <div id="output" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
     </div>
 
-    <!-- SEARCH -->
-    <div class="flex gap-3 mb-8">
-      <input id="searchInput"
-             type="text"
-             placeholder="f.eks. tannlege Bergen, rørlegger Stavanger, frisør Tromsø..."
-             class="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500 transition text-sm"
-             onkeydown="if(event.key==='Enter') loadLeads()">
-      <button onclick="loadLeads()"
-              id="searchBtn"
-              class="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition text-black px-6 py-3 rounded-xl font-semibold text-sm whitespace-nowrap">
-        Søk leads
-      </button>
+    <!-- SAVED LEADS TAB -->
+    <div id="view-saved" class="hidden">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-bold mb-1">Lagrede leads</h2>
+          <p class="text-sm text-zinc-500">Spor status og legg til notater for dine kontakter.</p>
+        </div>
+        <a href="/api/leads/saved/export"
+           class="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 hover:border-cyan-500 rounded-xl text-sm text-zinc-300 hover:text-white transition">
+          CSV-eksport
+        </a>
+      </div>
+
+      <!-- STATUS FILTER -->
+      <div class="flex gap-2 mb-6">
+        <button onclick="filterSaved('all')" id="sf-all"
+                class="saved-filter-btn px-4 py-1.5 rounded-full text-sm border border-cyan-500 text-cyan-400">Alle</button>
+        <button onclick="filterSaved('new')" id="sf-new"
+                class="saved-filter-btn px-4 py-1.5 rounded-full text-sm border border-zinc-700 text-zinc-400 hover:border-zinc-500">Nye</button>
+        <button onclick="filterSaved('contacted')" id="sf-contacted"
+                class="saved-filter-btn px-4 py-1.5 rounded-full text-sm border border-zinc-700 text-zinc-400 hover:border-zinc-500">Kontaktet</button>
+        <button onclick="filterSaved('done')" id="sf-done"
+                class="saved-filter-btn px-4 py-1.5 rounded-full text-sm border border-zinc-700 text-zinc-400 hover:border-zinc-500">Ferdig</button>
+      </div>
+
+      <div id="savedOutput" class="space-y-3"></div>
     </div>
-
-    <!-- STATUS -->
-    <div id="statusMsg" class="hidden mb-4 text-xs text-zinc-500"></div>
-
-    <!-- GRID -->
-    <div id="output" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
 
   </div>
-
 </div>
+
+<style>
+  .tab-btn { color: #a1a1aa; }
+  .active-tab { background: #18181b; color: #22d3ee; }
+  .tab-btn:hover:not(.active-tab) { background: #27272a; color: #fff; }
+</style>
 
 <script>
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -114,21 +202,77 @@
     data: null,
     error: null,
     plan: null,
+    filteredLeads: [],
+    savedLeads: [],
+    savedFilter: 'all',
+    notesLeadId: null,
   };
+
+  // ── Utility ──────────────────────────────────────────────────
 
   function escapeHtml(str) {
     return String(str ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   function scoreStyle(score) {
     if (score >= 8) return "bg-green-500/20 text-green-400 border-green-500/30";
     if (score >= 6) return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
     return "bg-red-500/20 text-red-400 border-red-500/30";
+  }
+
+  function statusLabel(s) {
+    return { new: "Ny", contacted: "Kontaktet", done: "Ferdig" }[s] || s;
+  }
+
+  function statusColor(s) {
+    return { new: "text-zinc-400", contacted: "text-yellow-400", done: "text-green-400" }[s] || "text-zinc-400";
+  }
+
+  // ── Tab switching ────────────────────────────────────────────
+
+  function switchTab(tab) {
+    document.getElementById("view-search").classList.toggle("hidden", tab !== "search");
+    document.getElementById("view-saved").classList.toggle("hidden", tab !== "saved");
+    document.getElementById("tab-search").classList.toggle("active-tab", tab === "search");
+    document.getElementById("tab-saved").classList.toggle("active-tab", tab === "saved");
+    if (tab === "saved") loadSavedLeads();
+  }
+
+  // ── Search & Leads ───────────────────────────────────────────
+
+  function applyFilters() {
+    const leads = state.data?.data ?? [];
+    const quality = document.getElementById("filterQuality").value;
+    const scoreMin = document.getElementById("filterScore").value;
+    const sort = document.getElementById("sortBy").value;
+
+    const hasFilter = quality || scoreMin;
+    document.getElementById("resetFilters").classList.toggle("hidden", !hasFilter);
+
+    let filtered = [...leads];
+    if (quality) filtered = filtered.filter(l => l.website_quality === quality);
+    if (scoreMin !== "") {
+      const min = parseInt(scoreMin);
+      if (min === 8) filtered = filtered.filter(l => l.score >= 8);
+      else if (min === 6) filtered = filtered.filter(l => l.score >= 6 && l.score < 8);
+      else filtered = filtered.filter(l => l.score < 6);
+    }
+
+    if (sort === "score-asc") filtered.sort((a, b) => a.score - b.score);
+    else if (sort === "score-desc") filtered.sort((a, b) => b.score - a.score);
+    else if (sort === "name-asc") filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    state.filteredLeads = filtered;
+    renderLeads();
+  }
+
+  function resetFilters() {
+    document.getElementById("filterQuality").value = "";
+    document.getElementById("filterScore").value = "";
+    document.getElementById("sortBy").value = "score-desc";
+    applyFilters();
   }
 
   function render() {
@@ -144,26 +288,31 @@
         </div>`;
       return;
     }
-
     if (state.error) {
       outputEl.innerHTML = `<div class="col-span-3 text-red-400 text-sm">${escapeHtml(state.error)}</div>`;
       return;
     }
-
     if (!state.data) return;
 
     const leads = state.data.data ?? [];
+    state.filteredLeads = [...leads].sort((a, b) => b.score - a.score);
+    state.plan = state.data.plan;
     planEl.innerText  = escapeHtml(state.data.plan) || "–";
     countEl.innerText = leads.length + " leads";
-
     statusEl.classList.remove("hidden");
     statusEl.innerText = escapeHtml(state.data.message ?? "");
+    renderLeads();
+  }
 
-    const isPro = state.data.plan === "pro";
+  function renderLeads() {
+    const outputEl = document.getElementById("output");
+    const isPro = state.plan === "pro";
+    const savedNames = new Set(state.savedLeads.map(l => l.name));
 
-    outputEl.innerHTML = leads.map((lead, i) => `
+    outputEl.innerHTML = state.filteredLeads.map((lead, i) => {
+      const isSaved = savedNames.has(lead.name);
+      return `
       <div class="bg-zinc-900/60 backdrop-blur border border-zinc-800 rounded-2xl p-5 flex flex-col">
-
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1 min-w-0 mr-3">
             <h3 class="text-base font-semibold leading-tight">${escapeHtml(lead.name)}</h3>
@@ -174,28 +323,29 @@
           </div>
         </div>
 
-        <p class="text-sm text-gray-300 leading-relaxed mb-4 flex-1">
-          ${escapeHtml(lead.reason)}
-        </p>
+        <p class="text-sm text-gray-300 leading-relaxed mb-4 flex-1">${escapeHtml(lead.reason)}</p>
 
-        <div class="border-t border-zinc-800 pt-3 mt-auto flex items-center justify-between">
+        <div class="border-t border-zinc-800 pt-3 mt-auto flex items-center justify-between gap-2">
           <span class="text-xs text-zinc-500">Nettside: ${escapeHtml(lead.website_quality)}</span>
-          ${isPro
-            ? `<button onclick='openEmailModal(${i})'
-                       class="text-xs text-cyan-400 hover:text-cyan-300 transition font-medium">
-                 ✉ Generer e-post
-               </button>`
-            : `<a href="/pricing" class="text-xs text-zinc-600 hover:text-zinc-400 transition">
-                 ✉ Pro-funksjon
-               </a>`
-          }
+          <div class="flex items-center gap-3">
+            <button onclick='toggleSave(${i})'
+                    id="save-btn-${i}"
+                    class="text-xs transition font-medium ${isSaved ? "text-cyan-400" : "text-zinc-500 hover:text-cyan-400"}">
+              ${isSaved ? "★ Lagret" : "☆ Lagre"}
+            </button>
+            ${isPro
+              ? `<button onclick='openEmailModal(${i})'
+                         class="text-xs text-cyan-400 hover:text-cyan-300 transition font-medium">
+                   ✉ E-post
+                 </button>`
+              : `<a href="/pricing" class="text-xs text-zinc-600 hover:text-zinc-400 transition">✉ Pro</a>`
+            }
+          </div>
         </div>
+      </div>`;
+    }).join("");
 
-      </div>
-    `).join("");
-
-    // Cache leads for modal access
-    window._leads = leads;
+    window._leads = state.filteredLeads;
   }
 
   async function loadLeads() {
@@ -223,12 +373,172 @@
     }
   }
 
+  // ── Save / unsave lead ───────────────────────────────────────
+
+  async function toggleSave(leadIndex) {
+    const lead = window._leads?.[leadIndex];
+    if (!lead) return;
+
+    const savedEntry = state.savedLeads.find(l => l.name === lead.name);
+    if (savedEntry) {
+      const ok = await deleteSavedLead(savedEntry.id);
+      if (ok) {
+        state.savedLeads = state.savedLeads.filter(l => l.id !== savedEntry.id);
+        updateSavedCount();
+        renderLeads();
+      }
+    } else {
+      const res = await fetch("/api/leads/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify(lead),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        state.savedLeads.push({ ...lead, id: data.id, status: "new", notes: "" });
+        updateSavedCount();
+        renderLeads();
+      }
+    }
+  }
+
+  async function deleteSavedLead(id) {
+    const res = await fetch(`/api/leads/saved/${id}`, {
+      method: "DELETE",
+      headers: { "X-CSRFToken": csrfToken },
+    });
+    return res.ok;
+  }
+
+  function updateSavedCount() {
+    const el = document.getElementById("savedCount");
+    el.textContent = state.savedLeads.length > 0 ? `(${state.savedLeads.length})` : "";
+  }
+
+  // ── Saved leads tab ──────────────────────────────────────────
+
+  async function loadSavedLeads() {
+    const res = await fetch("/api/leads/saved");
+    if (!res.ok) return;
+    const data = await res.json();
+    state.savedLeads = data.data ?? [];
+    updateSavedCount();
+    renderSaved();
+  }
+
+  function filterSaved(filter) {
+    state.savedFilter = filter;
+    document.querySelectorAll(".saved-filter-btn").forEach(btn => {
+      const isActive = btn.id === `sf-${filter}`;
+      btn.className = `saved-filter-btn px-4 py-1.5 rounded-full text-sm border transition ${
+        isActive ? "border-cyan-500 text-cyan-400" : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+      }`;
+    });
+    renderSaved();
+  }
+
+  function renderSaved() {
+    const container = document.getElementById("savedOutput");
+    let leads = state.savedLeads;
+    if (state.savedFilter !== "all") leads = leads.filter(l => l.status === state.savedFilter);
+
+    if (leads.length === 0) {
+      container.innerHTML = `<div class="text-center py-16 text-zinc-600 text-sm">
+        ${state.savedLeads.length === 0 ? "Ingen lagrede leads ennå. Søk etter leads og trykk ☆ for å lagre." : "Ingen leads med denne statusen."}
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = leads.map(lead => `
+      <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 flex gap-4 items-start" id="saved-row-${lead.id}">
+
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3 mb-1 flex-wrap">
+            <h3 class="font-semibold text-sm">${escapeHtml(lead.name)}</h3>
+            <span class="text-xs text-cyan-400">${escapeHtml(lead.industry)}</span>
+            <span class="px-2 py-0.5 rounded-full text-xs border ${scoreStyle(lead.score)}">${escapeHtml(lead.score)}/10</span>
+          </div>
+          <p class="text-xs text-zinc-500 mb-2">Nettside: ${escapeHtml(lead.website_quality)}${lead.address ? " · " + escapeHtml(lead.address) : ""}</p>
+          ${lead.notes ? `<p class="text-xs text-zinc-400 italic">${escapeHtml(lead.notes)}</p>` : ""}
+        </div>
+
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <select onchange="updateStatus(${lead.id}, this.value)"
+                  class="px-3 py-1.5 bg-zinc-950 border border-zinc-700 rounded-lg text-xs focus:outline-none focus:border-cyan-500 ${statusColor(lead.status)}">
+            <option value="new" ${lead.status === "new" ? "selected" : ""}>Ny</option>
+            <option value="contacted" ${lead.status === "contacted" ? "selected" : ""}>Kontaktet</option>
+            <option value="done" ${lead.status === "done" ? "selected" : ""}>Ferdig</option>
+          </select>
+          <button onclick="openNotesModal(${lead.id}, '${escapeHtml(lead.notes).replace(/'/g, "&#39;")}')"
+                  class="text-xs text-zinc-500 hover:text-white transition">Notater</button>
+          <button onclick="removeSaved(${lead.id})"
+                  class="text-xs text-red-500 hover:text-red-400 transition">Slett</button>
+        </div>
+
+      </div>
+    `).join("");
+  }
+
+  async function updateStatus(id, status) {
+    const res = await fetch(`/api/leads/saved/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ status }),
+    });
+    if (res.ok) {
+      const lead = state.savedLeads.find(l => l.id === id);
+      if (lead) lead.status = status;
+    }
+  }
+
+  async function removeSaved(id) {
+    const ok = await deleteSavedLead(id);
+    if (ok) {
+      state.savedLeads = state.savedLeads.filter(l => l.id !== id);
+      updateSavedCount();
+      renderSaved();
+      if (state.data) renderLeads();
+    }
+  }
+
+  // ── Notes modal ──────────────────────────────────────────────
+
+  function openNotesModal(id, currentNotes) {
+    state.notesLeadId = id;
+    document.getElementById("notesText").value = currentNotes || "";
+    document.getElementById("notesModal").classList.remove("hidden");
+  }
+
+  function closeNotesModal() {
+    document.getElementById("notesModal").classList.add("hidden");
+    state.notesLeadId = null;
+  }
+
+  async function saveNotes() {
+    const id = state.notesLeadId;
+    const notes = document.getElementById("notesText").value;
+    const res = await fetch(`/api/leads/saved/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ notes }),
+    });
+    if (res.ok) {
+      const lead = state.savedLeads.find(l => l.id === id);
+      if (lead) lead.notes = notes;
+      closeNotesModal();
+      renderSaved();
+    }
+  }
+
+  document.getElementById("notesModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("notesModal")) closeNotesModal();
+  });
+
   // ── Email modal ──────────────────────────────────────────────
 
   function openEmailModal(leadIndex) {
     const lead = window._leads?.[leadIndex];
     if (!lead) return;
-
     const modal     = document.getElementById("emailModal");
     const title     = document.getElementById("modalTitle");
     const loading   = document.getElementById("modalLoading");
@@ -258,19 +568,11 @@
   async function fetchEmail(lead) {
     const res = await fetch("/api/email", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
       body: JSON.stringify(lead),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Noe gikk galt");
-    }
-
+    if (!res.ok) throw new Error(data.error || "Noe gikk galt");
     return data.email;
   }
 
@@ -287,15 +589,17 @@
     });
   }
 
-  // Close modal on backdrop click
   document.getElementById("emailModal").addEventListener("click", function(e) {
     if (e.target === this) closeModal();
   });
 
-  // Close modal on Escape
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") { closeModal(); closeNotesModal(); }
   });
+
+  // ── Init ─────────────────────────────────────────────────────
+
+  loadSavedLeads();
 </script>
 
 </body>

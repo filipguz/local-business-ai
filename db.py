@@ -23,6 +23,22 @@ def init_db():
                 plan TEXT NOT NULL DEFAULT 'free'
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS saved_leads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                name TEXT NOT NULL,
+                industry TEXT,
+                website_quality TEXT,
+                score INTEGER,
+                reason TEXT,
+                address TEXT,
+                status TEXT NOT NULL DEFAULT 'new',
+                notes TEXT NOT NULL DEFAULT '',
+                saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (username) REFERENCES users(username)
+            )
+        """)
         conn.commit()
     _migrate_from_json()
 
@@ -84,3 +100,78 @@ def set_user_plan(username: str, plan: str) -> bool:
         )
         conn.commit()
         return cursor.rowcount > 0
+
+
+_ALLOWED_STATUSES = {"new", "contacted", "done"}
+
+
+def save_lead(username: str, lead: dict) -> int:
+    with _connect() as conn:
+        cursor = conn.execute(
+            """INSERT INTO saved_leads (username, name, industry, website_quality, score, reason, address)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                username,
+                str(lead.get("name", ""))[:200],
+                str(lead.get("industry", ""))[:200],
+                str(lead.get("website_quality", ""))[:50],
+                int(lead.get("score", 0)),
+                str(lead.get("reason", ""))[:500],
+                str(lead.get("address", ""))[:300],
+            ),
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def get_saved_leads(username: str) -> list:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM saved_leads WHERE username = ? ORDER BY saved_at DESC",
+            (username,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def delete_saved_lead(lead_id: int, username: str) -> bool:
+    with _connect() as conn:
+        cursor = conn.execute(
+            "DELETE FROM saved_leads WHERE id = ? AND username = ?",
+            (lead_id, username),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def update_saved_lead(lead_id: int, username: str, status: str | None, notes: str | None) -> bool:
+    if status is not None and status not in _ALLOWED_STATUSES:
+        return False
+    with _connect() as conn:
+        if status is not None and notes is not None:
+            cursor = conn.execute(
+                "UPDATE saved_leads SET status = ?, notes = ? WHERE id = ? AND username = ?",
+                (status, notes[:1000], lead_id, username),
+            )
+        elif status is not None:
+            cursor = conn.execute(
+                "UPDATE saved_leads SET status = ? WHERE id = ? AND username = ?",
+                (status, lead_id, username),
+            )
+        elif notes is not None:
+            cursor = conn.execute(
+                "UPDATE saved_leads SET notes = ? WHERE id = ? AND username = ?",
+                (notes[:1000], lead_id, username),
+            )
+        else:
+            return False
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def is_lead_saved(username: str, name: str) -> bool:
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT id FROM saved_leads WHERE username = ? AND name = ?",
+            (username, name),
+        ).fetchone()
+        return row is not None

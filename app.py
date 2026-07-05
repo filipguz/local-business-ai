@@ -1,17 +1,27 @@
+import csv
+import io
 import logging
 import os
 from datetime import timedelta
 
 import stripe
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, session
+from flask import Flask, Response, jsonify, redirect, render_template, request, session
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 
 from ai import analyze_leads, generate_email
 from auth import auth
 from config import FREE_PLAN_QUERY, PRO_PLAN_QUERY
-from db import get_user_plan, init_db, set_user_plan
+from db import (
+    delete_saved_lead,
+    get_saved_leads,
+    get_user_plan,
+    init_db,
+    save_lead,
+    set_user_plan,
+    update_saved_lead,
+)
 from extensions import limiter
 from maps import search_places
 from payments import create_checkout_session
@@ -73,12 +83,12 @@ def checkout():
 
 @app.route("/success")
 def success():
-    return "Payment successful"
+    return render_template("success.html")
 
 
 @app.route("/cancel")
 def cancel():
-    return "Payment cancelled"
+    return render_template("cancel.html")
 
 
 @app.route("/api/leads")
@@ -106,6 +116,82 @@ def get_leads():
         message = "Pro plan – full tilgang"
 
     return jsonify({"user": user, "plan": plan, "message": message, "data": leads})
+
+
+@app.route("/api/leads/save", methods=["POST"])
+@limiter.limit("30 per minute", key_func=_rate_limit_key)
+def save_lead_route():
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "not logged in"}), 401
+
+    lead = request.get_json(silent=True)
+    if not lead or not lead.get("name"):
+        return jsonify({"error": "Mangler lead-data"}), 400
+
+    lead_id = save_lead(user, lead)
+    return jsonify({"id": lead_id}), 201
+
+
+@app.route("/api/leads/saved")
+def get_saved_leads_route():
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "not logged in"}), 401
+
+    leads = get_saved_leads(user)
+    return jsonify({"data": leads})
+
+
+@app.route("/api/leads/saved/<int:lead_id>", methods=["DELETE"])
+def delete_saved_lead_route(lead_id):
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "not logged in"}), 401
+
+    deleted = delete_saved_lead(lead_id, user)
+    if not deleted:
+        return jsonify({"error": "Ikke funnet"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/leads/saved/<int:lead_id>", methods=["PATCH"])
+def update_saved_lead_route(lead_id):
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "not logged in"}), 401
+
+    body = request.get_json(silent=True) or {}
+    status = body.get("status")
+    notes = body.get("notes")
+
+    updated = update_saved_lead(lead_id, user, status, notes)
+    if not updated:
+        return jsonify({"error": "Ugyldig eller ikke funnet"}), 400
+    return jsonify({"ok": True})
+
+
+@app.route("/api/leads/saved/export")
+def export_saved_leads():
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "not logged in"}), 401
+
+    leads = get_saved_leads(user)
+    output = io.StringIO()
+    writer = csv.DictWriter(
+        output,
+        fieldnames=["name", "industry", "website_quality", "score", "reason", "address", "status", "notes", "saved_at"],
+        extrasaction="ignore",
+    )
+    writer.writeheader()
+    writer.writerows(leads)
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=leads.csv"},
+    )
 
 
 @app.route("/api/email", methods=["POST"])
